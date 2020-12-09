@@ -77,7 +77,7 @@ open class LUAutocompleteView: UIView {
     public let tableView = UITableView()
     private var heightConstraint: NSLayoutConstraint?
     private static let cellIdentifier = "AutocompleteCellIdentifier"
-    public var elements = [String]() {
+    public var elements = [LUAModelRow]() {
         didSet {
             tableView.reloadData()
             height = tableView.contentSize.height + 10
@@ -235,13 +235,13 @@ extension LUAutocompleteView: UITableViewDataSource {
         let text = elements[indexPath.row]
         
         guard autocompleteCell != nil, let customCell = cell as? LUAutocompleteTableViewCell  else {
-            cell.textLabel?.attributedText = NSAttributedString(string: text, attributes: textAttributes)
+            cell.textLabel?.attributedText = NSAttributedString(string: text.id, attributes: textAttributes)
             cell.selectionStyle = .none
 
             return cell
         }
 
-        customCell.set(text: text)
+        customCell.set(text: text.id)
 
         return customCell
     }
@@ -265,7 +265,6 @@ extension LUAutocompleteView: UITableViewDelegate {
         if shouldHideAfterSelecting {
             height = 0
         }
-        textField?.text = elements[indexPath.row]
         delegate?.autocompleteView(self, didSelect: elements[indexPath.row])
     }
 }
