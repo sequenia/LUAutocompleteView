@@ -38,7 +38,14 @@ open class LUAutocompleteView: UIView {
 
             textField.addTarget(self, action: #selector(textFieldEditingChanged), for: .editingChanged)
             textField.addTarget(self, action: #selector(textFieldEditingEnded), for: .editingDidEnd)
-
+        }
+    }
+    
+    public weak var parentAutoCompleteView: UIView? {
+        didSet {
+            guard let parentAutoCompleteView = parentAutoCompleteView else {
+                return
+            }
             setupConstraints()
         }
     }
@@ -67,13 +74,13 @@ open class LUAutocompleteView: UIView {
 
     // MARK: - Private Properties
 
-    private let tableView = UITableView()
+    public let tableView = UITableView()
     private var heightConstraint: NSLayoutConstraint?
     private static let cellIdentifier = "AutocompleteCellIdentifier"
-    private var elements = [String]() {
+    public var elements = [String]() {
         didSet {
             tableView.reloadData()
-            height = tableView.contentSize.height
+            height = tableView.contentSize.height + 10
         }
     }
     private var height: CGFloat = 0 {
@@ -139,7 +146,7 @@ open class LUAutocompleteView: UIView {
     }
 
     private func setupConstraints() {
-        guard let textField = textField else {
+        guard let parentAutoCompleteView = self.parentAutoCompleteView else {
             assertionFailure("Sanity check")
             return
         }
@@ -157,9 +164,9 @@ open class LUAutocompleteView: UIView {
             tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
             tableView.topAnchor.constraint(equalTo: topAnchor),
             tableView.bottomAnchor.constraint(equalTo: bottomAnchor),
-            leadingAnchor.constraint(equalTo: textField.leadingAnchor),
-            trailingAnchor.constraint(equalTo: textField.trailingAnchor),
-            topAnchor.constraint(equalTo: textField.bottomAnchor),
+            leadingAnchor.constraint(equalTo: parentAutoCompleteView.leadingAnchor),
+            trailingAnchor.constraint(equalTo: parentAutoCompleteView.trailingAnchor),
+            topAnchor.constraint(equalTo: parentAutoCompleteView.bottomAnchor),
             heightConstraint!
         ]
 
@@ -214,7 +221,7 @@ extension LUAutocompleteView: UITableViewDataSource {
 
     - Returns: An object inheriting from `UITableViewCell` that the table view can use for the specified row. An assertion is raised if you return `nil`.
     */
-    public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    open func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: LUAutocompleteView.cellIdentifier) else {
             assertionFailure("Cell shouldn't be nil")
             return UITableViewCell()
@@ -226,7 +233,7 @@ extension LUAutocompleteView: UITableViewDataSource {
         }
 
         let text = elements[indexPath.row]
-
+        
         guard autocompleteCell != nil, let customCell = cell as? LUAutocompleteTableViewCell  else {
             cell.textLabel?.attributedText = NSAttributedString(string: text, attributes: textAttributes)
             cell.selectionStyle = .none
